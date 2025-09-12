@@ -3,6 +3,7 @@ package com.yourcaryourway.Backend.DTOs;
 public class ChatMessage {
     private String from;
     private String content;
+    private String sessionId;
 
     public ChatMessage() {}
     public ChatMessage(String from, String content) {
@@ -25,4 +26,7 @@ public class ChatMessage {
     public void setContent(String content) {
         this.content = content;
     }
+
+    public String getSessionId() { return sessionId; }
+    public void setSessionId(String sessionId) { this.sessionId = sessionId; }
 }
