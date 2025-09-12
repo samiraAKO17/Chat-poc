@@ -1,0 +1,19 @@
+<div class="chat-setup" *ngIf="!usernameSet">
+      <input [(ngModel)]="usernameInput" placeholder="Entrez votre pseudo" />
+      <button (click)="submitUsername()">Valider</button>
+    </div>
+
+    <div *ngIf="usernameSet">
+      <div class="chat-container">
+        <div class="messages">
+          <div *ngFor="let msg of messages">
+            <b>{{ msg.from }}:</b> {{ msg.content }}
+          </div>
+        </div>
+
+        <div class="input-row">
+          <input [(ngModel)]="newMessage" placeholder="Écrivez un message..." />
+          <button (click)="send()">Envoyer</button>
+        </div>
+      </div>
+    </div>
