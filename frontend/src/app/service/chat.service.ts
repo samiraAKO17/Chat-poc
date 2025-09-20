@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { Client, Message } from '@stomp/stompjs';
 import { Subject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-
 export interface ChatMessage {
   from: string;
   content: string;
   sessionId?: string;
+  timestamp?: string;
 }
 
 @Injectable({ providedIn: 'root' })

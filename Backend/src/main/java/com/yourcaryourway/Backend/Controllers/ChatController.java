@@ -23,7 +23,8 @@ public class ChatController {
     public ChatMessage send(ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
         // Ajout de l’ID de session pour tracer l’expéditeur
         message.setSessionId(headerAccessor.getSessionId());
-
+        // Ajout de l'heure
+        message.setTimestamp();
         // Sauvegarde dans l’historique en mémoire (POC)
         chatHistoryService.addMessage(message);
 

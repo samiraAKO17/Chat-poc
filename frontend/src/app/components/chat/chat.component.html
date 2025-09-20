@@ -4,16 +4,24 @@
     </div>
 
     <div *ngIf="usernameSet">
-      <div class="chat-container">
-        <div class="messages">
-          <div *ngFor="let msg of messages">
-            <b>{{ msg.from }}:</b> {{ msg.content }}
-          </div>
-        </div>
-
-        <div class="input-row">
-          <input [(ngModel)]="newMessage" placeholder="Écrivez un message..." />
-          <button (click)="send()">Envoyer</button>
-        </div>
+      <div class="chat-wrapper" *ngIf="usernameSet">
+     <div class="chat-container">
+  <div class="messages">
+    <div *ngFor="let msg of messages" 
+         [ngClass]="{'sent': msg.from === username, 'received': msg.from !== username}">
+      <div class="bubble">
+        <b *ngIf="msg.from !== username">{{ msg.from }}</b>
+        <p>{{ msg.content }}</p>
+        <span class="time">{{ msg.timestamp | date:'shortTime' }}</span>
       </div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <input [(ngModel)]="newMessage" placeholder="Écrivez un message..." />
+    <button (click)="send()">Envoyer</button>
+  </div>
+</div>
+
+    </div>
     </div>

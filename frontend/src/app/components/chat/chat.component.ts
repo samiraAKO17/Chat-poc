@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
+import { NgClass, NgFor, NgIf } from '@angular/common';
 import { ChatService } from '../../service/chat.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule, NgFor, NgIf],
+  imports: [FormsModule, NgFor, NgIf, NgClass, DatePipe],
   templateUrl: './chat.component.html',
   styleUrls:  ['./chat.component.scss']
 })
