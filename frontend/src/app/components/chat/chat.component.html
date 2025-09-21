@@ -3,7 +3,6 @@
       <button (click)="submitUsername()">Valider</button>
     </div>
 
-    <div *ngIf="usernameSet">
       <div class="chat-wrapper" *ngIf="usernameSet">
      <div class="chat-container">
   <div class="messages">
@@ -18,10 +17,9 @@
   </div>
 
   <div class="input-row">
-    <input [(ngModel)]="newMessage" placeholder="Écrivez un message..." />
+    <input class="message-area" [(ngModel)]="newMessage" placeholder="Écrivez un message..." />
     <button (click)="send()">Envoyer</button>
   </div>
 </div>
 
-    </div>
     </div>
