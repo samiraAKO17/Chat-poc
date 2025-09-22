@@ -1,87 +1,105 @@
--- Extensions (pour UUID)
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+-- Table des rôles
+CREATE TABLE role (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
 
--- Users
+-- Table des utilisateurs
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  first_name VARCHAR(100),
-  last_name VARCHAR(100),
-  phone VARCHAR(50),
-  locale VARCHAR(10),
-  currency VARCHAR(10),
-  role VARCHAR(50) DEFAULT 'client',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    phone VARCHAR(20),
+    locale VARCHAR(10),
+    currency VARCHAR(10),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Agencies
-CREATE TABLE agencies (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  address TEXT,
-  city VARCHAR(100),
-  country VARCHAR(100),
-  latitude NUMERIC(10,7),
-  longitude NUMERIC(10,7)
+-- Table de jointure User <-> Role (many-to-many)
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE CASCADE
 );
 
--- Vehicles
-CREATE TABLE vehicles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  agency_id UUID REFERENCES agencies(id) ON DELETE SET NULL,
-  acriss_code VARCHAR(10),
-  license_plate VARCHAR(50),
-  status VARCHAR(50) DEFAULT 'available',
-  daily_rate NUMERIC(10,2),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- Table des agences
+CREATE TABLE agency (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    country VARCHAR(100),
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6)
 );
 
--- Bookings
-CREATE TABLE bookings (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  vehicle_id UUID REFERENCES vehicles(id) ON DELETE SET NULL,
-  pickup_agency_id UUID REFERENCES agencies(id),
-  return_agency_id UUID REFERENCES agencies(id),
-  start_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  end_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  total_amount NUMERIC(12,2),
-  currency VARCHAR(10),
-  status VARCHAR(50) DEFAULT 'pending',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- Table des véhicules
+CREATE TABLE vehicle (
+    id BIGSERIAL PRIMARY KEY,
+    acriss_code VARCHAR(10),
+    license_plate VARCHAR(20) UNIQUE,
+    status VARCHAR(20),
+    daily_rate DECIMAL(10,2),
+    agency_id BIGINT NOT NULL,
+    FOREIGN KEY (agency_id) REFERENCES agency(id) ON DELETE CASCADE
 );
 
--- Payments
-CREATE TABLE payments (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id UUID REFERENCES bookings(id) ON DELETE CASCADE,
-  amount NUMERIC(12,2) NOT NULL,
-  currency VARCHAR(10),
-  status VARCHAR(50),
-  psp_transaction_id VARCHAR(255),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- Table des réservations
+CREATE TABLE booking (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    vehicle_id BIGINT NOT NULL,
+    pickup_agency_id BIGINT,
+    return_agency_id BIGINT,
+    start_at TIMESTAMP NOT NULL,
+    end_at TIMESTAMP NOT NULL,
+    total_amount DECIMAL(10,2),
+    currency VARCHAR(10),
+    status VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (vehicle_id) REFERENCES vehicle(id) ON DELETE CASCADE,
+    FOREIGN KEY (pickup_agency_id) REFERENCES agency(id),
+    FOREIGN KEY (return_agency_id) REFERENCES agency(id)
 );
 
--- Conversations & Messages (chat)
-CREATE TABLE conversations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  booking_id UUID REFERENCES bookings(id),
-  client_id UUID REFERENCES users(id),
-  agent_id UUID REFERENCES users(id),
-  status VARCHAR(50) DEFAULT 'open',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+-- Table des paiements
+CREATE TABLE payment (
+    id BIGSERIAL PRIMARY KEY,
+    booking_id BIGINT NOT NULL UNIQUE,
+    amount DECIMAL(10,2),
+    currency VARCHAR(10),
+    status VARCHAR(20),
+    psp_transaction_id VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES booking(id) ON DELETE CASCADE
 );
 
-CREATE TABLE messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  conversation_id UUID REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_id UUID REFERENCES users(id),
-  content TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  is_read BOOLEAN DEFAULT false
+-- Table des conversations (chat)
+CREATE TABLE conversation (
+    id BIGSERIAL PRIMARY KEY,
+    booking_id BIGINT,
+    client_id BIGINT NOT NULL,
+    agent_id BIGINT,
+    status VARCHAR(20),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES booking(id) ON DELETE SET NULL,
+    FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (agent_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
--- Indexes utiles
-CREATE INDEX idx_bookings_user ON bookings(user_id);
-CREATE INDEX idx_messages_conversation ON messages(conversation_id);
+-- Table des messages
+CREATE TABLE message (
+    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGINT NOT NULL,
+    sender_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    read BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (conversation_id) REFERENCES conversation(id) ON DELETE CASCADE,
+    FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+);
